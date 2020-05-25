@@ -1,0 +1,23 @@
+{
+  "name": "lay-zers",
+  "version": "1.0.0",
+  "description": "Laser",
+  "scripts": {
+    "start": "npm run clean && parcel src/index.html",
+    "build": "npm run clean && parcel build src/index.html --public-url ./",
+    "build_serve": "npm run build && http-server ./dist",
+    "clean": "rm -rf ./dist ./.cache"
+  },
+  "author": "sransara",
+  "license": "MIT",
+  "dependencies": {
+    "pixi-viewport": "^4.11.1",
+    "pixi.js": "^5.2.4"
+  },
+  "devDependencies": {
+    "babel-preset-env": "^1.7.0",
+    "http-server": "^0.12.3",
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^3.9.3"
+  }
+}

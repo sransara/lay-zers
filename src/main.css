@@ -1,0 +1,25 @@
+#container {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    background-color: #f3f3f3;
+}
+
+#sidebar {
+    flex: 0 3rem;
+    background-color: #000330;
+}
+
+#main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 1rem;
+}
+
+canvas {
+    display: block;
+}
