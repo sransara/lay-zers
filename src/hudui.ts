@@ -1,4 +1,5 @@
 import tippy from 'tippy.js'
+import * as tippyg from 'tippy.js'
 import 'tippy.js/dist/tippy.css'
 
 const selectableModeElems = document.getElementsByClassName("selectable-mode")
@@ -129,40 +130,48 @@ tippy(btnLayzer, {
     appendTo: document.body,
     onShow() {
         layzerPreview.classList.remove('shaking')
+        tippyg.hideAll({ exclude: btnLayzer })
     }
 })
 
 function startTutorial() {
-    const mainCanvas = <HTMLElement>document.querySelector("#main canvas")
-    const tippyCanvas = tippy(mainCanvas, {
-        content: 'Click anywhere to add a layzer',
+    const mainCanvas = document.querySelector("#main canvas") as HTMLElement
+    mainCanvas.addEventListener("touchstart", function (e) {
+        if (e.touches.length > 1) return
+        tippyg.hideAll()
+    })
+    const tippyMaxWidth = mainCanvas.clientWidth * (3 / 4)
+    tippy(mainCanvas, {
+        content: 'Click anywhere on the grid to add a layzer',
         trigger: 'manual',
         arrow: false,
-        placement: "right",
-        offset: [-mainCanvas.clientHeight / 4, -mainCanvas.clientWidth * (3 / 4],
+        placement: "top-start",
+        offset: [mainCanvas.clientWidth / 4, -mainCanvas.clientHeight * (3 / 4)],
+        showOnCreate: true,
+        maxWidth: tippyMaxWidth,
         onHidden() {
             layzerPreview.classList.add('shaking')
-            const tippyBtnLayzer = tippy(btnLayzer, {
+            tippy(layzerPreview, {
                 content: 'Click here to design a layzer',
                 trigger: 'manual',
                 placement: "right",
-                onHidden() { 
-                    const tippyCanvas = tippy(mainCanvas, {
-                        content: 'Add other layzers on the grid and see how they interact.',
+                maxWidth: tippyMaxWidth,
+                showOnCreate: true,
+                onHidden() {
+                    tippy(mainCanvas, {
+                        content: 'Add other layzers on the grid and see how they interact',
                         allowHTML: true,
                         arrow: false,
                         trigger: 'manual',
-                        placement: "right",
-                        offset: [-mainCanvas.clientHeight / 4, -mainCanvas.clientWidth * (3/ 4)],
+                        placement: "top-start",
+                        maxWidth: tippyMaxWidth,
+                        offset: [mainCanvas.clientWidth / 4, -mainCanvas.clientHeight * (3 / 4)],
+                        showOnCreate: true,
                     })
-                    tippyCanvas.show()
                 }
             })
-            tippyBtnLayzer.show()
         }
     })
-    tippyCanvas.show()
-
 }
 
 window.addEventListener('load', function () {
