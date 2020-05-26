@@ -22,17 +22,19 @@ const canvas = app.view
 layzerCanvasHolder.appendChild(canvas)
 
 /* Textures and sprites */
-let graphics = new PIXI.Graphics()
-graphics.lineStyle(1, 0xf3f3f3, 1, 0)
-graphics.beginFill(0xffffff)
-graphics.drawRect(0, 0, pixilSize, pixilSize)
-graphics.endFill()
-const pixilTexture = app.renderer.generateTexture(graphics, PIXI.SCALE_MODES.LINEAR, 2)
+function createGridTexture(size) {
+    const graphics = new PIXI.Graphics()
+    graphics.lineStyle(1, 0xf3f3f3, 1, 0)
+    graphics.beginFill(0xffffff)
+    graphics.drawRect(0, 0, size, size)
+    graphics.endFill()
+    return app.renderer.generateTexture(graphics, PIXI.SCALE_MODES.LINEAR, 2)
+}
 
 /* The world */
 const world = new PIXI.Container()
 app.stage.addChild(world)
-const tileWorld = new PIXI.TilingSprite(pixilTexture, worldWidth, worldHeight);
+const tileWorld = new PIXI.TilingSprite(createGridTexture(pixilSize), worldWidth, worldHeight);
 const rayWorld = new PIXI.Container()
 const fixtureWorld = new PIXI.Container()
 world.addChild(tileWorld, rayWorld, fixtureWorld)
@@ -255,18 +257,45 @@ class Fixture {
     }
 }
 
-function VanishingingSprite() {
+function createVanishingSpriteTexture(size) {
+    const graphics = new PIXI.Graphics()
+    graphics.lineStyle(2, 0x00, 1, 0)
+    graphics.beginFill(0xffffff)
+    graphics.drawRect(0, 0, size, size)
+    return app.renderer.generateTexture(graphics, PIXI.SCALE_MODES.LINEAR, 2)
+}
 
+const vanishingingSpriteTexture = createVanishingSpriteTexture(pixilSize * 2)
+function addVanishingingSprite(c: Point) {
+    const sprite = new PIXI.Sprite(vanishingingSpriteTexture)
+    tileWorld.addChild(sprite)
+    sprite.position.set(c[0], c[1])
+    sprite.anchor.set(0.5)
+    sprite.alpha = 0.8
+
+    const tween = () => {
+        if(sprite.width < pixilSize) {
+            sprite.destroy()
+            app.ticker.remove(tween)
+        }
+        else {
+            sprite.scale.x /= 1.1
+            sprite.scale.y /= 1.1
+        }
+    }
+    app.ticker.add(tween)
 }
 
 function addFixture(worldX: number, worldY: number, color: number, shapePoints: ShapePoint[]) {
     const pixilPoints = worldPointToPixilPoints(worldX, worldY)
     Fixture.new(color, shapePoints, pixilPoints)
+    addVanishingingSprite(pixilPoints.c)
     emitRays()
 }
 
 function removeFixture(worldX: number, worldY: number) {
     const pixilPoints = worldPointToPixilPoints(worldX, worldY)
+    addVanishingingSprite(pixilPoints.c)
     Fixture.remove(pixilPoints)
     emitRays()
 }
