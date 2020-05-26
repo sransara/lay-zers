@@ -279,8 +279,8 @@ function addVanishingingSprite(c: Point) {
             app.ticker.remove(tween)
         }
         else {
-            sprite.scale.x /= 1.1
-            sprite.scale.y /= 1.1
+            sprite.scale.x /= 1.2
+            sprite.scale.y /= 1.2
         }
     }
     app.ticker.add(tween)
