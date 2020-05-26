@@ -10,9 +10,6 @@
             "es2017",
             "dom"
         ],
-        "types": [
-            "jest"
-        ],
         "typeRoots": [
             "node_modules/@types"
         ]
