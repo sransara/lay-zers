@@ -465,8 +465,10 @@ canvas.addEventListener('click', (e) => {
     eventAction(e.clientX, e.clientY)
 })
 
+import * as tippys from 'tippy.js';
 canvas.addEventListener("touchstart", function (e) {
     if (e.touches.length > 1) return
+    tippys.hideAll()
     let touch = e.touches[0];
     eventAction(touch.clientX, touch.clientY)
 })

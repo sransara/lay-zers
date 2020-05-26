@@ -139,7 +139,7 @@ function startTutorial() {
         trigger: 'manual',
         arrow: false,
         placement: "right",
-        offset: [0, -mainCanvas.clientWidth / 2],
+        offset: [-mainCanvas.clientHeight / 4, -mainCanvas.clientWidth * (3 / 4],
         onHidden() {
             layzerPreview.classList.add('shaking')
             const tippyBtnLayzer = tippy(btnLayzer, {
