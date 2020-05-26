@@ -11,8 +11,8 @@
   "author": "sransara",
   "license": "MIT",
   "dependencies": {
-    "pixi-viewport": "^4.11.1",
-    "pixi.js": "^5.2.4"
+    "pixi.js": "^5.2.4",
+    "tippy.js": "^6.2.3"
   },
   "devDependencies": {
     "babel-preset-env": "^1.7.0",

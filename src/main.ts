@@ -1,33 +1,159 @@
+/* HUD UI */
+import tippy from 'tippy.js'
+import 'tippy.js/dist/tippy.css'
+
+const selectableModeElems = document.getElementsByClassName("selectable-mode")
+Array.from(selectableModeElems).forEach((elem) => {
+    elem.addEventListener('click', (event) => {
+        Array.from(selectableModeElems).forEach((elem) => {
+            elem.classList.remove("selected")
+        });
+        const targetElement = (event.currentTarget as Element)
+        targetElement.classList.add('selected')
+    })
+})
+
+const blockingColor = 0x00
+const reflectingColor = 0x696969
+const emittingColors = [
+    0xff0000,
+    0x00ff00,
+    0x0000ff
+]
+let selectedColor = 0xff
+
+const allShapes = [
+    ['a', 'd', 'e'],
+    ['a', 'b', 'd'],
+    ['a', 'b', 'e'],
+    ['b', 'd', 'e'],
+    ['a', 'b', 'd', 'e'],
+]
+let selectedShape = ['a', 'b', 'd']
+
+const layzerPreview = <HTMLCanvasElement>document.getElementById("layzerPreview")
+
+function drawLayzerPreview(canvas, shape, color?) {
+    const canvasCtx = canvas.getContext('2d');
+    canvasCtx.fillStyle = "white"
+    canvasCtx.fillRect(0, 0, canvas.width, canvas.height)
+    const pointMap = {
+        'a': [0, 0],
+        'b': [canvas.width, 0],
+        'd': [canvas.width, canvas.height],
+        'e': [0, canvas.height],
+    }
+
+    canvasCtx.beginPath()
+    canvasCtx.moveTo(pointMap[shape[0]][0], pointMap[shape[0]][1])
+    for (let s of shape.slice(0)) {
+        canvasCtx.lineTo(pointMap[s][0], pointMap[s][1])
+    }
+    canvasCtx.closePath()
+    if (color === undefined) {
+        color = 0xd3d3d3
+    }
+    const scolor = '#' + color.toString(16).padStart(6, '0')
+    canvasCtx.fillStyle = scolor
+    canvasCtx.fill()
+}
+drawLayzerPreview(layzerPreview, selectedShape, selectedColor)
+
+const remSize = parseInt(getComputedStyle(document.documentElement).fontSize)
+const layzerDesignerShapes = document.getElementById("layzerDesignerShapes")
+const layzerDesginerShapesHolder = layzerDesignerShapes.querySelector(".item-row")
+for (let shape of allShapes) {
+    let canvas = document.createElement('canvas');
+    canvas.style.width = "1.5rem"
+    canvas.style.height = "1.5rem"
+    layzerDesginerShapesHolder.appendChild(canvas)
+    drawLayzerPreview(canvas, shape)
+    if (shape.join('') == selectedShape.join('')) {
+        canvas.classList.add('selected')
+    }
+    
+    canvas.addEventListener('click', (e) => {
+        Array.from(layzerDesginerShapesHolder.children).forEach((elem) => {
+            elem.classList.remove("selected")
+        });
+        const targetElement = (event.currentTarget as Element)
+        targetElement.classList.add('selected')
+        selectedShape = shape
+        drawLayzerPreview(layzerPreview, selectedShape, selectedColor)
+    })
+}
+
+const layzerDesignerColors = document.getElementById("layzerDesignerColors")
+const layzerDesginerColorsHolder = layzerDesignerColors.querySelector(".item-row")
+let allColors = [blockingColor, reflectingColor, ...emittingColors]
+for (let color of allColors) {
+    let canvas = document.createElement('canvas');
+    canvas.style.width = "1.5rem"
+    canvas.style.height = "1.5rem"
+    layzerDesginerColorsHolder.appendChild(canvas)
+    drawLayzerPreview(canvas, ['a', 'b', 'd', 'e'], color)
+    if (color == selectedColor) {
+        canvas.classList.add('selected')
+    }
+
+    canvas.addEventListener('click', (e) => {
+        Array.from(layzerDesginerColorsHolder.children).forEach((elem) => {
+            elem.classList.remove("selected")
+        });
+        const targetElement = (event.currentTarget as Element)
+        targetElement.classList.add('selected')
+        selectedColor = color
+        drawLayzerPreview(layzerPreview, selectedShape, selectedColor)
+    })
+}
+
+const layzerBlockingColor = document.getElementById("layzerBlockingColor")
+layzerBlockingColor.innerHTML = "&nbsp;".repeat(4)
+layzerBlockingColor.style.width = "1em"
+layzerBlockingColor.style.height = "1em"
+layzerBlockingColor.style.backgroundColor = '#' + blockingColor.toString(16).padStart(6, '0')
+
+const layzerReflectingColor = document.getElementById("layzerReflectingColor")
+layzerReflectingColor.innerHTML = "&nbsp;".repeat(4)
+layzerReflectingColor.style.width = "1em"
+layzerReflectingColor.style.height = "1em"
+layzerReflectingColor.style.backgroundColor = '#' + reflectingColor.toString(16).padStart(6, '0')
+
+
+const layzerDesigner = document.getElementById('layzerDesigner');
+layzerDesigner.style.display = 'block';
+const btnLayzer = document.getElementById("btnLayzer")
+tippy(btnLayzer, {
+    content: layzerDesigner,
+    trigger: 'click',
+    placement: 'right',
+    interactive: true,
+    appendTo: document.body,
+})
+
+
+/* Lazyzers */
 import * as PIXI from 'pixi.js'
-import { Viewport } from 'pixi-viewport'
 
 const pixilSize = parseInt(getComputedStyle(document.documentElement).fontSize) * 2
-const canvasHolder = document.getElementById("main")
-const [screenWidth, screenHeight] = [canvasHolder.clientWidth, canvasHolder.clientHeight]
+const layzerCanvasHolder = document.getElementById("main")
+let [screenWidth, screenHeight] = [layzerCanvasHolder.clientWidth, layzerCanvasHolder.clientHeight]
 const [gridWidthUnits, gridHeightUnits] = [Math.floor(screenWidth / pixilSize), Math.floor(screenHeight / pixilSize)]
 const [worldWidth, worldHeight] = [pixilSize * gridWidthUnits, pixilSize * gridHeightUnits]
+if (worldWidth < screenWidth || worldHeight < screenHeight) {
+    [screenWidth, screenHeight] = [worldWidth, worldHeight]
+}
 
 /* Setup the world */
 const app = new PIXI.Application({
     width: screenWidth,
     height: screenHeight,
-    backgroundColor: 0xf3f3f3,
+    backgroundColor: 0xc0c0c0,
     resolution: window.devicePixelRatio || 1,
     autoDensity: true,
 })
 const canvas = app.view
-canvasHolder.appendChild(canvas)
-
-const viewport = new Viewport({
-    screenWidth: screenWidth,
-    screenHeight: screenHeight,
-    worldWidth: worldWidth,
-    worldHeight: worldHeight,
-    interaction: app.renderer.plugins.interaction,
-})
-app.stage.addChild(viewport)
-viewport.drag({ mouseButtons: 'left' }).wheel().pinch({ noDrag: true }).bounce()
-viewport.clampZoom({ minScale: viewport.scale.x, maxScale: screenWidth / (10 * pixilSize) })
+layzerCanvasHolder.appendChild(canvas)
 
 /* Textures and sprites */
 let graphics = new PIXI.Graphics()
@@ -38,7 +164,8 @@ graphics.endFill()
 const pixilTexture = app.renderer.generateTexture(graphics, PIXI.SCALE_MODES.LINEAR, 2)
 
 /* The world */
-const world = viewport.addChild(new PIXI.Container())
+const world = new PIXI.Container()
+app.stage.addChild(world)
 const tileWorld = new PIXI.TilingSprite(pixilTexture, worldWidth, worldHeight);
 //tileWorld.zIndex = 0
 const rayWorld = new PIXI.Container()
@@ -92,9 +219,6 @@ function vectorToUnitv(v) {
     ]
 }
 
-const reflectingColor = 0x696969
-const absorbingColor = 0x00
-
 const layzers = Object.create(null)
 class Layzer {
     ray: any
@@ -132,22 +256,29 @@ class Fixture {
     reflecting: boolean
 
 
-    static new(color, shapePoints, worldPoints) {
-        const fixture = new Fixture(color, shapePoints, worldPoints)
+    static new(color, shapePoints, pixilPoints) {
+        const fixture = new Fixture(color, shapePoints, pixilPoints)
         if (fixtures[fixture.key] != undefined) {
             fixtures[fixture.key].destroy()
         }
         fixtures[fixture.key] = fixture
     }
 
-    constructor(color, shapePoints, worldPoints) {
+    static remove(pixilPoints) {
+        const key = pixilPoints.a.join(',')
+        if (fixtures[key] != undefined) {
+            fixtures[key].destroy()
+        }
+    }
+
+    constructor(color, shapePoints, pixilPoints) {
         // fixture key == origin point (a) in the world
-        this.key = worldPoints.a.join(',')
+        this.key = pixilPoints.a.join(',')
 
         // vertices of the fixture in terms of world points
-        this.vertices = shapePoints.map((c: string) => worldPoints[c])
+        this.vertices = shapePoints.map((c: string) => pixilPoints[c])
         if (shapePoints.length == 3) {
-            this.vertices.push(worldPoints['c'])
+            this.vertices.push(pixilPoints['c'])
         }
 
         // for the sprite, do we have the texture for this color and point pattern?
@@ -155,35 +286,35 @@ class Fixture {
         let fixtureTexture = fixtureTextureCache[fixtureTextureCacheKey]
         if (fixtureTexture == undefined) {
             // if not generate the texture
-            fixtureTexture = this.createFixtureTexture(color, shapePoints, worldPoints)
+            fixtureTexture = this.createFixtureTexture(color, shapePoints, pixilPoints)
             fixtureTextureCache[fixtureTextureCacheKey] = fixtureTexture
         }
 
         // add the sprite to the world with generated texture
         const sprite = new PIXI.Sprite(fixtureTexture)
         tileWorld.addChild(sprite)
-        sprite.position.set(worldPoints.a[0], worldPoints.a[1])
+        sprite.position.set(pixilPoints.a[0], pixilPoints.a[1])
         this.sprite = sprite
 
         this.reflecting = color == reflectingColor
 
         this.emitters = []
-        if (!(color == absorbingColor || color == reflectingColor)) {
-            this.emitters = this.createEmitters(color, shapePoints, worldPoints)
+        if (!(color == blockingColor || color == reflectingColor)) {
+            this.emitters = this.createEmitters(color, shapePoints, pixilPoints)
         }
 
         // prepare layzer
         Layzer.new(color)
     }
 
-    private createFixtureTexture(color, points, worldPoints) {
+    private createFixtureTexture(color, shapePoints, worldPoints) {
         const graphics = new PIXI.Graphics()
         graphics.beginFill(color)
 
         let curr = [0, 0]
         // move curr to first point in the points path
         const a = worldPoints['a']
-        const b = worldPoints[points[0]]
+        const b = worldPoints[shapePoints[0]]
         curr[0] = curr[0] + (b[0] - a[0])
         curr[1] = curr[1] + (b[1] - a[1])
         graphics.moveTo(curr[0], curr[1])
@@ -193,16 +324,16 @@ class Fixture {
         let apointi = 0
         let bpointi = 1
         // walk through all the sides of the fixture
-        while (apointi < points.length) {
-            const a = worldPoints[points[apointi]]
-            const b = worldPoints[points[bpointi]]
+        while (apointi < shapePoints.length) {
+            const a = worldPoints[shapePoints[apointi]]
+            const b = worldPoints[shapePoints[bpointi]]
 
             curr[0] = curr[0] + (b[0] - a[0])
             curr[1] = curr[1] + (b[1] - a[1])
             graphics.lineTo(curr[0], curr[1])
 
             apointi = (apointi + 1)
-            bpointi = (bpointi + 1) % points.length
+            bpointi = (bpointi + 1) % shapePoints.length
         }
 
         graphics.closePath()
@@ -235,13 +366,13 @@ class Fixture {
             else { // a slanted side through the center point
                 const a = worldPoints[sa]
                 const b = worldPoints[sb]
-                const scorner = shapePoints.find((s) => !(s == sa || s == sb)) 
+                const scorner = shapePoints.find((s) => !(s == sa || s == sb))
                 const corner = worldPoints[scorner]
                 const center = worldPoints['c']
                 const unitv = vectorToUnitv(abToVector(corner, center))
 
-                emitters.push({ unitv, color, a: a, b: corner})
-                emitters.push({ unitv, color, a: b, b: corner})
+                emitters.push({ unitv, color, a: a, b: corner })
+                emitters.push({ unitv, color, a: b, b: corner })
             }
 
             apointi = (apointi + 1)
@@ -258,9 +389,14 @@ class Fixture {
 }
 
 function addFixture(screenX: number, screenY: number, color, shapePoints) {
-    const worldPoint = viewport.toWorld(screenX, screenY)
-    const pixilPoints = worldPointToPixilPoints(worldPoint.x, worldPoint.y)
+    const pixilPoints = worldPointToPixilPoints(screenX, screenY)
     Fixture.new(color, shapePoints, pixilPoints)
+    emitRays()
+}
+
+function removeFixture(screenX: number, screenY: number) {
+    const pixilPoints = worldPointToPixilPoints(screenX, screenY)
+    Fixture.remove(pixilPoints)
     emitRays()
 }
 
@@ -410,16 +546,30 @@ function emitRays() {
 }
 
 /* Events */
-canvas.oncontextmenu = (e: MouseEvent) => {
-    e.preventDefault()
+function eventAction(ex, ey) {
     const rect = canvas.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    addFixture(x, y, 0X696969, ['a', 'b', 'd', 'e'])
+    const x = ex - rect.left
+    const y = ey - rect.top
+
+    if (x < 0 || x > screenWidth || y < 0 || y > screenHeight) return
+
+    const mode = document.querySelectorAll('.selectable-mode.selected')[0].getAttribute('data-mode')
+    if (mode == "remove") {
+        removeFixture(x, y)
+    }
+    else {
+        addFixture(x, y, selectedColor, selectedShape)
+    }
 }
-canvas.ondblclick = (e: MouseEvent) => {
-    const rect = canvas.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    addFixture(x, y, 0xff, ['a', 'b', 'd'])
-}
+
+canvas.addEventListener('click', (e) => {
+    eventAction(e.clientX, e.clientY)
+})
+
+canvas.addEventListener("touchstart", function (e) {
+    if (e.touches.length > 1) return
+    let touch = e.touches[0];
+    eventAction(touch.clientX, touch.clientY)
+})
+
+document.getElementById("loading").remove()
