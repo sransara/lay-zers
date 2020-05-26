@@ -148,7 +148,7 @@ function startTutorial() {
                 placement: "right",
                 onHidden() { 
                     const tippyCanvas = tippy(mainCanvas, {
-                        content: 'Now you can play with different layzer designs and see how they interact on the grid.',
+                        content: 'Add other layzers on the grid and see how they interact.',
                         allowHTML: true,
                         arrow: false,
                         trigger: 'manual',
