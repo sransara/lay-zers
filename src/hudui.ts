@@ -20,7 +20,7 @@ export const emittingColors = [
     0x00ff00,
     0x0000ff
 ]
-export let selectedColor = 0xff
+export let selectedColor = emittingColors[0]
 
 export const allShapes = [
     ['a', 'd', 'e'],

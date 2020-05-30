@@ -24,8 +24,8 @@ layzerCanvasHolder.appendChild(canvas)
 /* Textures and sprites */
 function createGridTexture(size) {
     const graphics = new PIXI.Graphics()
-    graphics.lineStyle(1, 0xf3f3f3, 1, 0)
-    graphics.beginFill(0xffffff)
+    graphics.lineStyle(1, 0x202020, 1, 0)
+    graphics.beginFill(0x0)
     graphics.drawRect(0, 0, size, size)
     graphics.endFill()
     return app.renderer.generateTexture(graphics, PIXI.SCALE_MODES.LINEAR, 2)
@@ -54,7 +54,7 @@ function worldToGrid(a: Point) {
     return a.map((x: number) => Math.floor(x / pixilSize))
 }
 
-function worldPointToPixilPoints(x: number, y: number): { [x in ShapePoint]: Point; }  {
+function worldPointToPixilPoints(x: number, y: number): { [x in ShapePoint]: Point; } {
     /*
            a------b                                                         
            |      |                                                         
@@ -97,13 +97,14 @@ class Layzer {
 
     constructor(color: number) {
         this.ray = new PIXI.Graphics()
+        this.ray.blendMode = PIXI.BLEND_MODES.ADD
         this.color = color
         rayWorld.addChild(this.ray)
     }
 
     init() {
         this.ray.clear()
-        this.ray.beginFill(0xffffff, 0.2)
+        this.ray.beginFill(0xffffff, 0.8)
         this.ray.tint = this.color
     }
 
@@ -163,10 +164,8 @@ class Fixture {
         }
 
         // add the sprite to the world with generated texture
-        const sprite = new PIXI.Sprite(fixtureTexture)
-        tileWorld.addChild(sprite)
-        sprite.position.set(pixilPoints.a[0], pixilPoints.a[1])
-        this.sprite = sprite
+        this.sprite = this.createFixtureSprite(fixtureTexture, color, shapePoints, pixilPoints)
+        tileWorld.addChild(this.sprite)
 
         this.reflecting = color == UI.reflectingColor
 
@@ -181,8 +180,7 @@ class Fixture {
 
     private createFixtureTexture(color: number, shapePoints: ShapePoint[], pixilPoints: { [x in ShapePoint]: Point; }) {
         const graphics = new PIXI.Graphics()
-        graphics.beginFill(color)
-
+        graphics.beginFill(0xffffff)
         let curr = [0, 0]
         // move curr to first point in the points path
         let a = pixilPoints['a']
@@ -208,7 +206,41 @@ class Fixture {
         // close path closes the last side
         graphics.closePath()
         graphics.endFill()
+
         return app.renderer.generateTexture(graphics, PIXI.SCALE_MODES.LINEAR, 2)
+    }
+
+    private createFixtureSprite(fixtureTexture: PIXI.Texture, color: number, shapePoints: ShapePoint[], pixilPoints: { [x in ShapePoint]: Point; }) {
+        const sprite = new PIXI.Sprite(fixtureTexture)
+        sprite.position.set(pixilPoints.c[0], pixilPoints.c[1])
+        sprite.anchor.set(0.5, 0.5)
+        const innerSprite = new PIXI.Sprite(fixtureTexture)
+        sprite.addChild(innerSprite)
+        innerSprite.anchor.set(0.5, 0.5)
+        innerSprite.tint = color
+        innerSprite.scale.set(0.6, 0.6)
+        // Walk through the sides, find if there's a triangle corner push the innerSprite towards the corner
+        const vhsides = ["ab", "bd", "de", "ea"]
+        let apointi = 0
+        let bpointi = 1
+        // walk through all the sides of the fixture
+        while (apointi < shapePoints.length) {
+            const sa = shapePoints[apointi]
+            const sb = shapePoints[bpointi]
+            if (vhsides.includes(sa + sb)) {
+                apointi = (apointi + 1)
+                bpointi = (bpointi + 1) % shapePoints.length
+                continue
+            }
+            else {
+                const center = pixilPoints['c']
+                const scorner = shapePoints.find(s => !(s == sa || s == sb))
+                const corner = pixilPoints[scorner]
+                innerSprite.position.set((corner[0] - center[0]) / 8, (corner[1] - center[1]) / 8)
+                break
+            }
+        }
+        return sprite
     }
 
     private createEmitters(color: number, shapePoints: ShapePoint[], pixilPoints: { [x in ShapePoint]: Point; }) {
@@ -274,7 +306,7 @@ function addVanishingingSprite(c: Point) {
     sprite.alpha = 0.8
 
     const tween = () => {
-        if(sprite.width < pixilSize) {
+        if (sprite.width < pixilSize) {
             sprite.destroy()
             app.ticker.remove(tween)
         }
@@ -382,9 +414,9 @@ function emitRay(emitter: Emitter, srcFixture?: Fixture) {
     let fixtureClosest = undefined
     for (const fixtureKey in fixtures) {
         if (srcFixture && srcFixture.key == fixtureKey) continue
-
         const fixture = fixtures[fixtureKey]
         if (fixture === undefined) continue
+
         const acv = closestVertexInDirection(a, fixture.vertices, unitv)
         if (!acv) continue
         const bcv = closestVertexInDirection(b, fixture.vertices, unitv)
