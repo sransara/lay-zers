@@ -4,8 +4,9 @@ import { isWebGLSupported } from '@pixi/utils';
 
 const layzerCanvasHolder = document.getElementById("main")
 if(!isWebGLSupported()) {
-    layzerCanvasHolder.innerHTML = "WebGL driver is having issues. Please check the console log."
-    return
+    const msg = "WebGL driver is having issues. Please check the console log."
+    layzerCanvasHolder.innerHTML = msg
+    throw new Error(msg)
 }
 
 const pixilSize = parseInt(getComputedStyle(document.documentElement).fontSize) * 2
