@@ -136,6 +136,7 @@ tippy(btnLayzer, {
 
 function startTutorial() {
     const mainCanvas = document.querySelector("#main canvas") as HTMLElement
+    if(!mainCanvas) return;
     mainCanvas.addEventListener("touchstart", function (e) {
         if (e.touches.length > 1) return
         tippyg.hideAll()

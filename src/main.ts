@@ -1,8 +1,14 @@
 import * as UI from './hudui'
 import * as PIXI from 'pixi.js'
+import { isWebGLSupported } from '@pixi/utils';
+
+const layzerCanvasHolder = document.getElementById("main")
+if(!isWebGLSupported()) {
+    layzerCanvasHolder.innerHTML = "WebGL driver is having issues. Please check the console log."
+    return
+}
 
 const pixilSize = parseInt(getComputedStyle(document.documentElement).fontSize) * 2
-const layzerCanvasHolder = document.getElementById("main")
 let [screenWidth, screenHeight] = [layzerCanvasHolder.clientWidth, layzerCanvasHolder.clientHeight]
 const [gridWidthUnits, gridHeightUnits] = [Math.floor(screenWidth / pixilSize), Math.floor(screenHeight / pixilSize)]
 const [worldWidth, worldHeight] = [pixilSize * gridWidthUnits, pixilSize * gridHeightUnits]

@@ -10,7 +10,7 @@ The [main codebase](https://github.com/sransara/lay-zers/blob/master/src/main.ts
 *(3)* If nothing else, this project should serve as a an interesting [Pixi.js](https://www.pixijs.com/) demo.
 
 For me this was a stepping stone weekend project. 
-Some lessons learned were noted [here](https://sransara.com/notes/2020/notes-from-project-lay-zers-v0/).
+Some lessons learned were noted [here](https://sransara.com/notes/2020/project-lay-zers-release-v0.0-retrospective/).
 
 ### Live
 https://lab.sransara.com/lay-zers/
